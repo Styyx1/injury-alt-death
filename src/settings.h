@@ -7,30 +7,46 @@ namespace Settings
     namespace Values
     {
         // bool
-        static REX::INI::Bool bEnableDebugLog{"Logging", "bEnableDebugLog", true};
+        static REX::INI::Bool bEnableDebugLog{"Logging", "bEnableDebugLog", false};
         static REX::INI::Bool show_stress_message{"Stress", "bShowStressMessage", true};
+        static REX::INI::Bool show_lady_stone_message{"Settings", "bShowLadyStoneMessage", true};
         // int
         static REX::INI::I32 sleep_location_difficulty{"Settings", "iSleepLocationDifficulty", 1};
         // float
-        static REX::INI::F32 stress_increase_value{"Stress", "fStressIncreaseValue", 0.5f};
+        static REX::INI::F32 stress_increase_value{"Stress", "fStressIncreaseValue", 10.0f};
         static REX::INI::F32 min_sleep_duration{"Settings", "fMinSleepDuration", 7.9f};
 
         // string
-        static REX::INI::Str stress_message{"Stress", "sStressMessage", (std::string) "You are stressed!"};
+        static REX::INI::Str stress_increase_message{"Stress", "sStressMessage", (std::string) "You are getting stressed!"};
+        static REX::INI::Str stress_decrease_message{"Stress", "sStressDecreaseMessage", (std::string) "You are less stressed!"};
+
+        static void LogSettings()
+        {
+            logs::info("----------Settings Logging----------");
+            logs::info("bEnableDebugLog: {}", bEnableDebugLog.GetValue() ? "true" : "false");
+            logs::info("iSleepLocationDifficulty: {}", sleep_location_difficulty.GetValue());
+            logs::info("fStressIncreaseValue: {}", stress_increase_value.GetValue());
+            logs::info("fMinSleepDuration: {}", min_sleep_duration.GetValue());
+            logs::info("sStressMessage: {}", stress_increase_message.GetValue().c_str());
+            logs::info("sStressDecreaseMessage: {}", stress_decrease_message.GetValue().c_str());
+            logs::info("----------Settings Logging----------");
+        }
 
         static void Update()
         {
+            logs::info("*****************SETTINGS*****************");
             logs::info("Loading settings...");
             const auto ini = REX::INI::SettingStore::GetSingleton();
             ini->Init(R"(.\Data\SKSE\Plugins\death-injuries.ini)", R"(.\Data\SKSE\Plugins\death-injuries.ini)");
             ini->Load();
 
+            LogSettings();
+            
             if (bEnableDebugLog.GetValue())
             {
                 spdlog::set_level(spdlog::level::debug);
-                logs::info("Debug logging enabled");
+                logs::debug("Debug logging enabled");
             }
-
             logs::info("...Settings loaded");
         }
     }
@@ -72,9 +88,8 @@ namespace Settings
         // Mapping from lower-tier to higher-tier spells
         static inline std::unordered_map<RE::SpellItem *, RE::SpellItem *> spell_upgrades;
 
-         // Mapping from higher-tier to lower-tier spells
+        // Mapping from higher-tier to lower-tier spells
         static inline std::unordered_map<RE::SpellItem *, RE::SpellItem *> spell_downgrades;
-       
 
         // Active injuries (tracks applied injuries)
         static inline std::vector<RE::SpellItem *> active_injuries;
@@ -108,18 +123,21 @@ namespace Settings
         {
             if (Settings::Values::bEnableDebugLog.GetValue())
             {
-                logs::info("injury_chest_tier0: {}", injury_chest_tier0->GetName());
-                logs::info("injury_head_tier0: {}", injury_head_tier0->GetName());
-                logs::info("injury_organs_tier0: {}", injury_organs_tier0->GetName());
-                logs::info("injury_legs_tier0: {}", injury_legs_tier0->GetName());
-                logs::info("injury_chest_tier1: {}", injury_chest_tier1->GetName());
-                logs::info("injury_head_tier1: {}", injury_head_tier1->GetName());
-                logs::info("injury_organs_tier1: {}", injury_organs_tier1->GetName());
-                logs::info("injury_legs_tier1: {}", injury_legs_tier1->GetName());
-                logs::info("injury_chest_tier2: {}", injury_chest_tier2->GetName());
-                logs::info("injury_head_tier2: {}", injury_head_tier2->GetName());
-                logs::info("injury_organs_tier2: {}", injury_organs_tier2->GetName());
-                logs::info("injury_legs_tier2: {}", injury_legs_tier2->GetName());
+                for (auto &spell : minor_injuries)
+                {
+                    if (spell)
+                        logs::info("Minor Injury Spell: {}", EDID::GetEditorID(spell));
+                }
+                for (auto &spell : medium_injuries)
+                {
+                    if (spell)
+                        logs::info("Medium Injury Spell: {}", EDID::GetEditorID(spell));
+                }
+                for (auto &spell : major_injuries)
+                {
+                    if (spell)
+                        logs::info("Major Injury Spell: {}", EDID::GetEditorID(spell));
+                }
             }
         }
 
@@ -151,6 +169,7 @@ namespace Settings
 
         static void LoadForms()
         {
+            logs::info("*****************FORMS*****************");
             auto dh = RE::TESDataHandler::GetSingleton();
 
             injury_chest_tier0 = dh->LookupForm<RE::SpellItem>(Constants::injury_chest_tier0, Constants::esp_name);
@@ -176,6 +195,11 @@ namespace Settings
             gold_tax_global = dh->LookupForm<RE::TESGlobal>(Constants::gold_tax_global_formid, Constants::esp_name);
             lady_stone_perk = dh->LookupForm<RE::BGSPerk>(Constants::lady_stone_perk_formid, Constants::esp_name);
 
+            if (auto mod_file = dh->LookupModByName(Constants::esp_name); !mod_file || mod_file->compileIndex == 0xFF)
+            {
+                SKSE::stl::report_and_fail(std::format("Failed to load {}. Please enable it, the mod can not work without it", Constants::esp_name));
+            }
+
             // stress and fear integration
             if (auto file = dh->LookupModByName(Constants::stress_mod_name); file && file->compileIndex != 0xFF)
             {
@@ -190,26 +214,7 @@ namespace Settings
             }
 
             PopulateInjuryLists();
-            LogSpells();
-            
-            if (Settings::Values::bEnableDebugLog.GetValue())
-            {
-                for (auto &spell : minor_injuries)
-                {
-                    if (spell)
-                        logs::info("Minor Injury Spell: {}", EDID::GetEditorID(spell));
-                }
-                for (auto &spell : medium_injuries)
-                {
-                    if (spell)
-                        logs::info("Medium Injury Spell: {}", EDID::GetEditorID(spell));
-                }
-                for (auto &spell : major_injuries)
-                {
-                    if (spell)
-                        logs::info("Major Injury Spell: {}", EDID::GetEditorID(spell));
-                }
-            }
+            LogSpells();            
         }
     };
 }

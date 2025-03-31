@@ -4,6 +4,7 @@
 #include "ondeatheffects.h"
 #include "utility.h"
 #include "sleephandler.h"
+#include "hooks.h"
 
 class ResurrectionManager : public ResurrectionAPI
 {
@@ -56,6 +57,7 @@ void InitListener(SKSE::MessagingInterface::Message *a_msg)
 		Utility::Injuries::InitializeDowngrades();
 		addSubscriber();
 		SleepEvents::InstallEvents();
+		Hooks::InstallHooks();
 	}
 	if (a_msg->type == SKSE::MessagingInterface::kPostLoadGame)
 	{
@@ -66,6 +68,8 @@ void InitListener(SKSE::MessagingInterface::Message *a_msg)
 SKSEPluginLoad(const SKSE::LoadInterface *a_skse)
 {
 	SKSE::Init(a_skse);
+	logs::init();
+	SKSE::AllocTrampoline(14 * 1);
 	Settings::Values::Update();
 	Cache::CacheAddLibAddresses();
 	SKSE::GetMessagingInterface()->RegisterListener(InitListener);

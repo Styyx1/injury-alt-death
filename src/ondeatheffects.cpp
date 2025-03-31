@@ -45,6 +45,10 @@ bool DeathEffects::ResEffects::CheckLadyStone(RE::PlayerCharacter *player)
         if (player->GetItemCount(gold->As<RE::TESBoundObject>()) >= Settings::Forms::gold_tax_global->value)
         {
             player->RemoveItem(gold->As<RE::TESBoundObject>(), Settings::Forms::gold_tax_global->value, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr, nullptr);
+            if (Settings::Values::show_lady_stone_message.GetValue())
+            {
+                RE::DebugNotification(std::format("You offered {} {} to the lady stone", Settings::Forms::gold_tax_global->value, gold->GetName()).c_str(), nullptr, true);
+            }
             return false;
         }
     }
@@ -58,13 +62,12 @@ void DeathEffects::ResEffects::RemoveAllInjuries(RE::Actor *a_actor)
         if (Utility::Spells::HasSpell(a_actor, spell))
         {
             a_actor->RemoveSpell(spell);
-#ifdef DEBUGGING
-            logs::info("Removed injury: {}", EDID::GetEditorID(spell));
-#endif
+            logs::debug("Removed injury: {}", EDID::GetEditorID(spell));
         }
     }
+    // Decrease stress for curing all injuries
+    auto stressManager = Stress::StressHandler::GetSingleton();
+    stressManager->ReduceStress();
     Settings::Forms::active_injuries.clear();
-#ifdef DEBUGGING
-    logs::info("All injuries removed.");
-#endif
+    logs::debug("All injuries removed.");
 }

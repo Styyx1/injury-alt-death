@@ -7,6 +7,7 @@ namespace SleepEvents
     void InstallEvents()
 
     {
+        logs::info("*****************EVENTS*****************");
         SleepStopHandler::RegisterSleepStop();
         SleepStartHandler::RegisterSleepStart();
     }
@@ -24,26 +25,23 @@ namespace SleepEvents
 
         if (hours >= Settings::Values::min_sleep_duration.GetValue() / 2 && hours < Settings::Values::min_sleep_duration.GetValue())
         {
-            if (Utility::Locations::IsSafePlace(player->GetParentCell())){
+            if (Utility::Locations::IsSafePlace(player->GetParentCell()))
+            {
                 Utility::Injuries::DowngradeInjuries(player);
             }
         }
 
         if (hours >= Settings::Values::min_sleep_duration.GetValue())
         {
-            
+
             if (Utility::Locations::IsSafePlace(player->GetParentCell()))
             {
                 DeathEffects::ResEffects::RemoveAllInjuries(player);
-#ifdef DEBUGGING
-                logs::info("player slept for more than {} hours", Settings::Values::min_sleep_duration.GetValue());
-#endif
+                logs::debug("player slept for more than {} hours", Settings::Values::min_sleep_duration.GetValue());
             }
             else
             {
-#ifdef DEBUGGING
-                logs::info("not a safe area, can't heal injury here");
-#endif
+                logs::debug("not a safe area, can't heal injury here");
             }
         }
     }

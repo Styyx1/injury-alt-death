@@ -6,7 +6,7 @@ includes("lib/commonlibsse-ng")
 
 -- set project
 set_project("death-injury")
-set_version("0.0.0")
+set_version("1.0.0")
 set_license("GPL-3.0")
 
 -- set defaults
@@ -16,7 +16,6 @@ set_warnings("allextra")
 -- set policies
 set_policy("package.requires_lock", true)
 set_config("rex_ini", true)
-set_config("rex_json", true)
 
 -- add rules
 add_rules("mode.debug", "mode.releasedbg")

@@ -237,15 +237,10 @@ namespace Utility
 
                     // Remove the higher-tier injury
                     a_actor->RemoveSpell(spell);
-#ifdef DEBUGGING
-                    logs::info("Removed injury: {}", EDID::GetEditorID(spell));
-#endif
 
                     // Apply the downgraded injury
                     Spells::ApplySpell(a_actor, a_actor, downgraded_spell);
-#ifdef DEBUGGING
-                    logs::info("Downgraded injury to: {}", EDID::GetEditorID(downgraded_spell));
-#endif
+
                     // Update the vector with the downgraded spell
                     spell = downgraded_spell;
                 }
@@ -253,20 +248,6 @@ namespace Utility
                 {
                     // If the spell is a minor injury, remove it from the active injuries list
                     a_actor->RemoveSpell(spell);
-#ifdef DEBUGGING
-                    logs::info("Removed minor injury: {}", EDID::GetEditorID(spell));
-#endif
-                }
-            }
-        }
-
-        static void PrintVector(const std::vector<RE::SpellItem *> &spells)
-        {
-            for (const auto &spell : spells)
-            {
-                if (spell)
-                {
-                    logs::info("Spell: {}", EDID::GetEditorID(spell));
                 }
             }
         }
@@ -276,7 +257,7 @@ namespace Utility
         {
             if (spells.empty())
             {
-                logs::error("No spells available in the list.");
+                logs::error("No spells available in the vector.");
                 return nullptr;
             }
 
@@ -291,9 +272,7 @@ namespace Utility
             }
             else
             {
-#ifdef DEBUGGING
-                logs::info("Selected random spell: {}", EDID::GetEditorID(selected_spell));
-#endif
+                logs::debug("Selected random spell: {}", EDID::GetEditorID(selected_spell));
             }
             return selected_spell;
         }
@@ -305,41 +284,20 @@ namespace Utility
             {
                 if (Settings::Forms::spell_upgrades.count(spell))
                 {
-#ifdef DEBUGGING
-                    logs::info("Upgrading injury: {}", spell->GetName());
-#endif
                     RE::SpellItem *upgraded_spell = Settings::Forms::spell_upgrades[spell];
                     // Remove the old spell
                     a_actor->RemoveSpell(spell);
-#ifdef DEBUGGING
-                    logs::info("Removed injury: {}", EDID::GetEditorID(spell));
-#endif
                     // Upgrade to the new spell
                     Spells::ApplySpell(a_actor, a_actor, upgraded_spell);
                     spell = upgraded_spell; // Update injury list
-#ifdef DEBUGGING
-                    logs::info("Upgraded injury to: {}", EDID::GetEditorID(spell));
-#endif
                 }
             }
             // Apply a new minor injury
             RE::SpellItem *new_injury = GetRandomSpell(Settings::Forms::minor_injuries);
             if (new_injury)
             {
-#ifdef DEBUGGING
-                logs::info("Current active injuries count: {}", Settings::Forms::active_injuries.size());
-#endif
                 Settings::Forms::active_injuries.push_back(new_injury);
-#ifdef DEBUGGING
-                logs::info("Applying new injury: {}", EDID::GetEditorID(new_injury));
-#endif
                 Spells::ApplySpell(a_actor, a_actor, new_injury);
-#ifdef DEBUGGING
-                logs::info("Applied new injury: {}", EDID::GetEditorID(new_injury));
-#endif
-#ifdef DEBUGGING
-                logs::info("Current active injuries count: {}", Settings::Forms::active_injuries.size());
-#endif
             }
         }
     };

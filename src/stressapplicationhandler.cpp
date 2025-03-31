@@ -20,7 +20,7 @@ namespace Stress
             IncreaseStress(Settings::Values::stress_increase_value.GetValue());
             if (Settings::Values::show_stress_message.GetValue())
             {
-                ShowStressMessage(Settings::Values::stress_message.GetValue());
+                ShowStressMessage(Settings::Values::stress_increase_message.GetValue().c_str());
             }
         }
     }
@@ -32,7 +32,7 @@ namespace Stress
             DecreaseStress(Settings::Values::stress_increase_value.GetValue());
             if (Settings::Values::show_stress_message.GetValue())
             {
-                ShowStressMessage(Settings::Values::stress_message.GetValue());
+                ShowStressMessage(Settings::Values::stress_decrease_message.GetValue().c_str());
             }
         }
     }

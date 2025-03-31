@@ -7,5 +7,3 @@
 
 namespace logs = SKSE::log;
 using namespace std::literals;
-
-#define DEBUGGING
