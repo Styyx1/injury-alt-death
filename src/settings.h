@@ -37,11 +37,11 @@ namespace Settings
             logs::info("*****************SETTINGS*****************");
             logs::info("Loading settings...");
             const auto ini = REX::INI::SettingStore::GetSingleton();
-            ini->Init(R"(.\Data\SKSE\Plugins\death-injuries.ini)", R"(.\Data\SKSE\Plugins\death-injuries.ini)");
+            ini->Init(R"(.\Data\SKSE\Plugins\stages-of-suffering.ini)", R"(.\Data\SKSE\Plugins\stages-of-suffering.ini)");
             ini->Load();
 
             LogSettings();
-            
+
             if (bEnableDebugLog.GetValue())
             {
                 spdlog::set_level(spdlog::level::debug);
@@ -53,7 +53,7 @@ namespace Settings
 
     namespace Constants
     {
-        constexpr const char *esp_name = "death-injuries.esp";
+        constexpr const char *esp_name = "StagesOfSuffering.esp";
         const int injury_chest_tier0 = 0x817;
         const int injury_head_tier0 = 0x81c;
         const int injury_organs_tier0 = 0x820;
@@ -214,7 +214,7 @@ namespace Settings
             }
 
             PopulateInjuryLists();
-            LogSpells();            
+            LogSpells();
         }
     };
 }
