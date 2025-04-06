@@ -4,49 +4,6 @@
 #include "cache.h"
 #include "stressapplicationhandler.h"
 
-void DeathEffects::ResEffects::CapInnPrices()
-{
-    {
-        if (Settings::Values::bEnableInnPrice.GetValue())
-        {
-            if (Settings::Forms::inn_price_single_night->value < Settings::Forms::inn_prices_map[Settings::Forms::inn_price_single_night])
-            {
-                Settings::Forms::inn_price_single_night->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_single_night];
-            }
-
-            if (!DoesExist(Settings::Forms::inn_price_week) || !DoesExist(Settings::Forms::inn_price_month) || !DoesExist(Settings::Forms::inn_price_night_capital) || !DoesExist(Settings::Forms::inn_price_week_capital) || !DoesExist(Settings::Forms::inn_price_month_capital))
-            {
-                logs::error("One or more inn price globals are null. Cannot cap to default values.");
-                return;
-            }
-            else
-            {
-
-                if (Settings::Forms::inn_price_week->value < Settings::Forms::inn_prices_map[Settings::Forms::inn_price_week])
-                {
-                    Settings::Forms::inn_price_week->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_week];
-                }
-                if (Settings::Forms::inn_price_month->value < Settings::Forms::inn_prices_map[Settings::Forms::inn_price_month])
-                {
-                    Settings::Forms::inn_price_month->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_month];
-                }
-                if (Settings::Forms::inn_price_night_capital->value < Settings::Forms::inn_prices_map[Settings::Forms::inn_price_night_capital])
-                {
-                    Settings::Forms::inn_price_night_capital->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_night_capital];
-                }
-                if (Settings::Forms::inn_price_week_capital->value < Settings::Forms::inn_prices_map[Settings::Forms::inn_price_week_capital])
-                {
-                    Settings::Forms::inn_price_week_capital->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_week_capital];
-                }
-                if (Settings::Forms::inn_price_month_capital->value < Settings::Forms::inn_prices_map[Settings::Forms::inn_price_month_capital])
-                {
-                    Settings::Forms::inn_price_month_capital->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_month_capital];
-                }
-            }
-        }
-    }
-}
-
 bool DeathEffects::ResEffects::DoesExist(RE::TESGlobal *a_global)
 {
     return a_global != nullptr && a_global->GetFormType() == RE::FormType::Global;
@@ -77,14 +34,11 @@ void DeathEffects::ResEffects::SetEthereal(RE::Actor *a_actor)
             Utility::Injuries::ApplyInjury(player);
             auto stressManager = Stress::StressHandler::GetSingleton();
             stressManager->ApplyStress();
-            IncreaseInnPrices(Settings::Values::fInnPriceMultiplier.GetValue());
+            ReapplyInnPriceMultiplier();
         }
     }
 }
 
-void DeathEffects::ResEffects::ApplyRandomInjury(RE::Actor *a_actor, RE::SpellItem *a_spell)
-{
-}
 #undef GetObject
 bool DeathEffects::ResEffects::CheckLadyStone(RE::PlayerCharacter *player)
 {
@@ -112,104 +66,14 @@ void DeathEffects::ResEffects::RemoveAllInjuries(RE::Actor *a_actor)
         {
             a_actor->RemoveSpell(spell);
             logs::debug("Removed injury: {}", EDID::GetEditorID(spell));
-            ResetInnPrices();
         }
     }
     // Decrease stress for curing all injuries
     auto stressManager = Stress::StressHandler::GetSingleton();
     stressManager->ReduceStress();
     Settings::Forms::active_injuries.clear();
+    ReapplyInnPriceMultiplier();
     logs::debug("All injuries removed.");
-}
-
-void DeathEffects::ResEffects::IncreaseInnPrices(float multiplier)
-{
-    if (Settings::Values::bEnableInnPrice.GetValue())
-    {
-        if (DoesExist(Settings::Forms::inn_price_single_night))
-        {
-            Settings::Forms::inn_price_single_night->value *= 1 + (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_week))
-        {
-            Settings::Forms::inn_price_week->value *= 1 + (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_month))
-        {
-            Settings::Forms::inn_price_month->value *= 1 + (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_night_capital))
-        {
-            Settings::Forms::inn_price_night_capital->value *= 1 + (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_week_capital))
-        {
-            Settings::Forms::inn_price_week_capital->value *= 1 + (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_month_capital))
-        {
-            Settings::Forms::inn_price_month_capital->value *= 1 + (multiplier / 100.0f);
-        }
-    }
-}
-
-void DeathEffects::ResEffects::DecreaseInnPrices(float multiplier)
-{
-    if (Settings::Values::bEnableInnPrice.GetValue())
-    {
-        if (DoesExist(Settings::Forms::inn_price_single_night))
-        {
-            Settings::Forms::inn_price_single_night->value *= 1 - (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_week))
-        {
-            Settings::Forms::inn_price_week->value *= 1 - (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_month))
-        {
-            Settings::Forms::inn_price_month->value *= 1 - (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_night_capital))
-        {
-            Settings::Forms::inn_price_night_capital->value *= 1 - (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_week_capital))
-        {
-            Settings::Forms::inn_price_week_capital->value *= 1 - (multiplier / 100.0f);
-        }
-        if (DoesExist(Settings::Forms::inn_price_month_capital))
-        {
-            Settings::Forms::inn_price_month_capital->value *= 1 - (multiplier / 100.0f);
-        }
-        CapInnPrices();
-    }
-}
-
-void DeathEffects::ResEffects::ResetInnPrices()
-{
-    if (Settings::Forms::inn_prices_map.empty())
-    {
-        logs::error("Inn prices map is empty. Cannot reset to default values.");
-        return;
-    }
-    if (!Settings::Values::bEnableInnPrice.GetValue())
-    {
-        return;
-    }
-    Settings::Forms::inn_price_single_night->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_single_night];
-
-    if (Settings::Forms::inn_price_week == nullptr || Settings::Forms::inn_price_month == nullptr || Settings::Forms::inn_price_night_capital == nullptr || Settings::Forms::inn_price_week_capital == nullptr || Settings::Forms::inn_price_month_capital == nullptr)
-    {
-        logs::error("One or more inn price globals are null. Cannot reset to default values.");
-        return;
-    }
-
-    Settings::Forms::inn_price_week->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_week];
-    Settings::Forms::inn_price_month->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_month];
-    Settings::Forms::inn_price_night_capital->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_night_capital];
-    Settings::Forms::inn_price_week_capital->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_week_capital];
-    Settings::Forms::inn_price_month_capital->value = Settings::Forms::inn_prices_map[Settings::Forms::inn_price_month_capital];
-    logs::debug("Inn prices reset to default values.");
 }
 
 void DeathEffects::ResEffects::ReapplyInnPriceMultiplier()

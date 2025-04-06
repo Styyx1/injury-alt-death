@@ -257,15 +257,7 @@ namespace Utility
             }
 
             injuries = std::move(updatedInjuries);
-
-            if (injuries.empty())
-            {
-                DeathEffects::ResEffects::ResetInnPrices();
-            }
-            else
-            {
-                DeathEffects::ResEffects::ReapplyInnPriceMultiplier();
-            }
+            DeathEffects::ResEffects::ReapplyInnPriceMultiplier();
         }
 
         // Function to get a random spell from a given tier

@@ -13,7 +13,7 @@
       "description": "List of minor injury spells.",
       "items": {
         "type": "string",
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       }
     },
     "medium_injuries": {
@@ -21,7 +21,7 @@
       "description": "List of medium injury spells.",
       "items": {
         "type": "string",
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       }
     },
     "major_injuries": {
@@ -29,29 +29,29 @@
       "description": "List of major injury spells.",
       "items": {
         "type": "string",
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       }
     },
     "spell_downgrades": {
       "type": "object",
       "description": "Mapping of spells to their downgraded versions.",
       "propertyNames": {
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       },
       "additionalProperties": {
         "type": "string",
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       }
     },
     "spell_upgrades": {
       "type": "object",
       "description": "Mapping of spells to their upgraded versions.",
       "propertyNames": {
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       },
       "additionalProperties": {
         "type": "string",
-        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.es[lmp]$"
       }
     }
   },
