@@ -16,8 +16,11 @@ set_warnings("allextra")
 -- set policies
 set_policy("package.requires_lock", true)
 set_config("rex_ini", true)
-set_config("rex_json", true)
 
+
+
+set_config("rex_json", true)
+add_requires("nlohmann_json")
 -- add rules
 add_rules("mode.debug", "mode.releasedbg")
 add_rules("plugin.vsxmake.autoupdate")
@@ -29,6 +32,7 @@ add_extrafiles("release/**.ini")
 target("stages-of-suffering")
     -- add dependencies to target
     add_deps("commonlibsse-ng")
+    add_packages("nlohmann_json")
 
     -- add commonlibsse-ng plugin
     add_rules("commonlibsse-ng.plugin", {

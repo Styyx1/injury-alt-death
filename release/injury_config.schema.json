@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Injury Config Schema",
+  "description": "Schema for injury settings in stages of suffering.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "The schema URI for validation."
+    },
+    "minor_injuries": {
+      "type": "array",
+      "description": "List of minor injury spells.",
+      "items": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      }
+    },
+    "medium_injuries": {
+      "type": "array",
+      "description": "List of medium injury spells.",
+      "items": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      }
+    },
+    "major_injuries": {
+      "type": "array",
+      "description": "List of major injury spells.",
+      "items": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      }
+    },
+    "spell_downgrades": {
+      "type": "object",
+      "description": "Mapping of spells to their downgraded versions.",
+      "propertyNames": {
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      }
+    },
+    "spell_upgrades": {
+      "type": "object",
+      "description": "Mapping of spells to their upgraded versions.",
+      "propertyNames": {
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]+\\|.+\\.esp$"
+      }
+    }
+  },
+  "required": [
+    "minor_injuries",
+    "medium_injuries",
+    "major_injuries",
+    "spell_downgrades",
+    "spell_upgrades"
+  ],
+  "additionalProperties": false
+}

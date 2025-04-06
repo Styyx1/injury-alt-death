@@ -58,6 +58,7 @@ void InitListener(SKSE::MessagingInterface::Message *a_msg)
 		addSubscriber();
 		SleepEvents::InstallEvents();
 		Hooks::InstallHooks();
+		Settings::JSONSettings::JSONValues::LoadAllInjuryConfigs("Data/SKSE/Plugins/SufferingInjuries/");
 	}
 	if (a_msg->type == SKSE::MessagingInterface::kPostLoadGame)
 	{

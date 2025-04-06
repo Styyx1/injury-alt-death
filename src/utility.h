@@ -2,6 +2,7 @@
 
 #include "settings.h"
 #include "cache.h"
+#include "ondeatheffects.h"
 #include <format> // Include for std::format
 
 namespace Utility
@@ -202,6 +203,7 @@ namespace Utility
 
             a_actor->VisitSpells(visitor);
             Settings::Forms::active_injuries = visitor.spells;
+            DeathEffects::ResEffects::ReapplyInnPriceMultiplier();
             return;
         }
 
@@ -226,29 +228,43 @@ namespace Utility
 
         static void DowngradeInjuries(RE::Actor *a_actor)
         {
-            for (size_t i = 0; i < Settings::Forms::active_injuries.size(); ++i)
+            auto &injuries = Settings::Forms::active_injuries;
+
+            // We'll rebuild the list as we go
+            std::vector<RE::SpellItem *> updatedInjuries;
+
+            for (auto *spell : injuries)
             {
-                RE::SpellItem *&spell = Settings::Forms::active_injuries[i];
-
-                // Check if there is a downgrade for this spell
-                if (Settings::Forms::spell_downgrades.count(spell))
+                if (Settings::Forms::spell_downgrades.contains(spell))
                 {
-                    RE::SpellItem *downgraded_spell = Settings::Forms::spell_downgrades[spell];
-
-                    // Remove the higher-tier injury
+                    // Downgrade
+                    RE::SpellItem *downgraded = Settings::Forms::spell_downgrades[spell];
                     a_actor->RemoveSpell(spell);
-
-                    // Apply the downgraded injury
-                    Spells::ApplySpell(a_actor, a_actor, downgraded_spell);
-
-                    // Update the vector with the downgraded spell
-                    spell = downgraded_spell;
+                    Spells::ApplySpell(a_actor, a_actor, downgraded);
+                    updatedInjuries.push_back(downgraded);
                 }
-                else if (std::count(Settings::Forms::minor_injuries.begin(), Settings::Forms::minor_injuries.end(), spell))
+                else if (!Settings::Forms::minor_injuries.empty() &&
+                         std::count(Settings::Forms::minor_injuries.begin(), Settings::Forms::minor_injuries.end(), spell))
                 {
-                    // If the spell is a minor injury, remove it from the active injuries list
+                    // It's a minor injury: remove it from actor and don't re-add
                     a_actor->RemoveSpell(spell);
                 }
+                else
+                {
+                    // Keep the spell as is
+                    updatedInjuries.push_back(spell);
+                }
+            }
+
+            injuries = std::move(updatedInjuries);
+
+            if (injuries.empty())
+            {
+                DeathEffects::ResEffects::ResetInnPrices();
+            }
+            else
+            {
+                DeathEffects::ResEffects::ReapplyInnPriceMultiplier();
             }
         }
 
@@ -289,7 +305,9 @@ namespace Utility
                     a_actor->RemoveSpell(spell);
                     // Upgrade to the new spell
                     Spells::ApplySpell(a_actor, a_actor, upgraded_spell);
+                    logs::info("Upgraded injury: {} to {}", EDID::GetEditorID(spell), EDID::GetEditorID(upgraded_spell));
                     spell = upgraded_spell; // Update injury list
+                    
                 }
             }
             // Apply a new minor injury
@@ -298,6 +316,8 @@ namespace Utility
             {
                 Settings::Forms::active_injuries.push_back(new_injury);
                 Spells::ApplySpell(a_actor, a_actor, new_injury);
+
+                logs::info("Applied new minor injury: {}", EDID::GetEditorID(new_injury));
             }
         }
     };

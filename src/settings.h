@@ -20,6 +20,10 @@ namespace Settings
         static REX::INI::Str stress_increase_message{"Stress", "sStressMessage", (std::string) "You are getting stressed!"};
         static REX::INI::Str stress_decrease_message{"Stress", "sStressDecreaseMessage", (std::string) "You are less stressed!"};
 
+        // hidden
+        static REX::INI::Bool bEnableInnPrice{"Settings", "bEnableInnPrice", false};
+        static REX::INI::F32 fInnPriceMultiplier{"Settings", "fInnPriceMultiplier", 20.0f}; // percentage increase for all inn prices
+
         static void LogSettings()
         {
             logs::info("----------Settings Logging----------");
@@ -77,6 +81,15 @@ namespace Settings
         constexpr const char *stress_mod_name = "Stress and Fear.esp";
         const int stress_enabled_formid = 0x8a5;
         const int stress_total_value_formid = 0x801;
+        // inn prices
+        const int inn_price_single_night_formid = 0x9CC98;
+        const int inn_price_week_formid = 0x80a;
+        const int inn_price_month_formid = 0x80b;
+        const int inn_price_night_capital_formid = 0x82F;
+        const int inn_price_week_capital_formid = 0x82e;
+        const int inn_price_month_capital_formid = 0x82d;
+        constexpr const char *inn_price_mod_name = "Candlehearth.esp";
+        constexpr const char *inn_price_vanilla_master = "Skyrim.esm";
     }
 
     struct Forms
@@ -118,6 +131,31 @@ namespace Settings
         // stress and fear integration
         static inline RE::TESGlobal *stress_enabled{nullptr};
         static inline RE::TESGlobal *stress_total_value{nullptr};
+        // inn prices
+        static inline RE::TESGlobal *inn_price_single_night{nullptr};
+        static inline RE::TESGlobal *inn_price_week{nullptr};
+        static inline RE::TESGlobal *inn_price_month{nullptr};
+        static inline RE::TESGlobal *inn_price_night_capital{nullptr};
+        static inline RE::TESGlobal *inn_price_week_capital{nullptr};
+        static inline RE::TESGlobal *inn_price_month_capital{nullptr};
+
+        static inline std::unordered_map<RE::TESForm *, float> inn_prices_map;
+
+        static void StoreInnPrices()
+        {
+            if (Settings::Values::bEnableInnPrice.GetValue())
+            {
+                inn_prices_map[inn_price_single_night] = inn_price_single_night->value;
+                if (inn_price_week && inn_price_month && inn_price_night_capital && inn_price_week_capital && inn_price_month_capital)
+                {
+                    inn_prices_map[inn_price_week] = inn_price_week->value;
+                    inn_prices_map[inn_price_month] = inn_price_month->value;
+                    inn_prices_map[inn_price_night_capital] = inn_price_night_capital->value;
+                    inn_prices_map[inn_price_week_capital] = inn_price_week_capital->value;
+                    inn_prices_map[inn_price_month_capital] = inn_price_month_capital->value;
+                }
+            }
+        }
 
         static void LogSpells()
         {
@@ -212,9 +250,161 @@ namespace Settings
                     logs::info("stress_total_value: {}", stress_total_value->GetFormEditorID());
                 }
             }
+            // inn prices
+            inn_price_single_night = dh->LookupForm<RE::TESGlobal>(Constants::inn_price_single_night_formid, Constants::inn_price_vanilla_master);
+            if (auto candleh = dh->LookupModByName(Constants::inn_price_mod_name); candleh && candleh->compileIndex != 0xFF)
+            {
+                logs::info("Candlehearth is active");
+                inn_price_week = dh->LookupForm<RE::TESGlobal>(Constants::inn_price_week_formid, Constants::inn_price_mod_name);
+                inn_price_month = dh->LookupForm<RE::TESGlobal>(Constants::inn_price_month_formid, Constants::inn_price_mod_name);
+                inn_price_night_capital = dh->LookupForm<RE::TESGlobal>(Constants::inn_price_night_capital_formid, Constants::inn_price_mod_name);
+                inn_price_week_capital = dh->LookupForm<RE::TESGlobal>(Constants::inn_price_week_capital_formid, Constants::inn_price_mod_name);
+                inn_price_month_capital = dh->LookupForm<RE::TESGlobal>(Constants::inn_price_month_capital_formid, Constants::inn_price_mod_name);
+                if (Settings::Values::bEnableDebugLog.GetValue())
+                {
+                    logs::info("inn_price_week: {}", inn_price_week->GetFormEditorID());
+                    logs::info("inn_price_month: {}", inn_price_month->GetFormEditorID());
+                    logs::info("inn_price_night_capital: {}", inn_price_night_capital->GetFormEditorID());
+                    logs::info("inn_price_week_capital: {}", inn_price_week_capital->GetFormEditorID());
+                    logs::info("inn_price_month_capital: {}", inn_price_month_capital->GetFormEditorID());
+                }
+            }
 
             PopulateInjuryLists();
             LogSpells();
+            StoreInnPrices();
+            logs::info("inn_prices_single_night: {}", inn_prices_map[inn_price_single_night]);
         }
     };
+
+    namespace JSONSettings
+    {
+        namespace JSONValues
+        {
+
+            static inline RE::TESForm *GetFormFromString(const std::string &spellName)
+            {
+                std::istringstream ss{spellName};
+                std::string plugin, id;
+                std::getline(ss, id, '|');
+                std::getline(ss, plugin);
+
+                // std::getline(ss, plugin, '|');
+                // std::getline(ss, id);
+
+                RE::FormID rawFormID;
+                std::istringstream(id) >> std::hex >> rawFormID;
+
+                auto dataHandler = RE::TESDataHandler::GetSingleton();
+                return dataHandler->LookupForm(rawFormID, plugin);
+            }
+
+            static inline void LoadInjuryConfig(const std::string &configFilePath)
+            {
+                std::ifstream file(configFilePath);
+                if (!file.is_open())
+                {
+                    logs::error("Failed to open the file: {}", configFilePath);
+                    return;
+                }
+
+                nlohmann::json j;
+                file >> j;
+
+                // Minor injuries
+                for (const auto &str : j["minor_injuries"])
+                {
+                    logs::info("Loading minor injury spell: {}", str.get<std::string>());
+                    RE::TESForm *form = GetFormFromString(str.get<std::string>());
+                    if (form && form->GetFormType() == RE::FormType::Spell)
+                    {
+                        Forms::minor_injuries.push_back(form->As<RE::SpellItem>());
+                        logs::info("Loaded minor injury spell: {}", EDID::GetEditorID(form));
+                    }
+                }
+
+                // Medium injuries
+                for (const auto &str : j["medium_injuries"])
+                {
+                    logs::info("Loading medium injury spell: {}", str.get<std::string>());
+                    RE::TESForm *form = GetFormFromString(str.get<std::string>());
+                    if (form && form->GetFormType() == RE::FormType::Spell)
+                    {
+                        Forms::medium_injuries.push_back(form->As<RE::SpellItem>());
+                        logs::info("Loaded medium injury spell: {}", EDID::GetEditorID(form));
+                    }
+                }
+
+                // Major injuries
+                for (const auto &str : j["major_injuries"])
+                {
+                    logs::info("Loading major injury spell: {}", str.get<std::string>());
+                    RE::TESForm *form = GetFormFromString(str.get<std::string>());
+                    if (form && form->GetFormType() == RE::FormType::Spell)
+                    {
+                        Forms::major_injuries.push_back(form->As<RE::SpellItem>());
+                        logs::info("Loaded major injury spell: {}", EDID::GetEditorID(form));
+                    }
+                }
+
+                // Spell upgrades
+                for (auto &[fromStr, toStr] : j["spell_upgrades"].items())
+                {
+                    logs::info("Loading spell upgrade: {} -> {}", fromStr.c_str(), toStr.get<std::string>());
+                    RE::TESForm *lowerForm = GetFormFromString(fromStr);
+                    RE::TESForm *higherForm = GetFormFromString(toStr.get<std::string>());
+
+                    if (lowerForm && higherForm &&
+                        lowerForm->GetFormType() == RE::FormType::Spell &&
+                        higherForm->GetFormType() == RE::FormType::Spell)
+                    {
+                        Forms::spell_upgrades[lowerForm->As<RE::SpellItem>()] = higherForm->As<RE::SpellItem>();
+                        logs::info("Loaded spell upgrade: {} -> {}", EDID::GetEditorID(lowerForm), EDID::GetEditorID(higherForm));
+                    }
+                }
+
+                // Spell downgrades
+                for (auto &[fromStr, toStr] : j["spell_downgrades"].items())
+                {
+                    logs::info("Loading spell downgrade: {} -> {}", fromStr.c_str(), toStr.get<std::string>());
+                    RE::TESForm *higherForm = GetFormFromString(fromStr);
+                    RE::TESForm *lowerForm = GetFormFromString(toStr.get<std::string>());
+
+                    if (higherForm && lowerForm &&
+                        higherForm->GetFormType() == RE::FormType::Spell &&
+                        lowerForm->GetFormType() == RE::FormType::Spell)
+                    {
+                        Forms::spell_downgrades[higherForm->As<RE::SpellItem>()] = lowerForm->As<RE::SpellItem>();
+                        logs::info("Loaded spell downgrade: {} -> {}", EDID::GetEditorID(higherForm), EDID::GetEditorID(lowerForm));
+                    }
+                }
+
+                logs::info("Loaded {} minor, {} medium, and {} major injuries from {}.",
+                           Forms::minor_injuries.size(),
+                           Forms::medium_injuries.size(),
+                           Forms::major_injuries.size(),
+                           configFilePath);
+            }
+
+            static inline void LoadAllInjuryConfigs(const std::string &folderPath)
+            {
+                if (!std::filesystem::exists(folderPath) || !std::filesystem::is_directory(folderPath))
+                {
+                    logs::error("Injury config folder not found: {}", folderPath);
+                    return;
+                }
+
+                for (const auto &entry : std::filesystem::directory_iterator(folderPath))
+                {
+                    if (entry.is_regular_file() && entry.path().extension() == ".json")
+                    {
+                        logs::info("Loading injury config: {}", entry.path().string());
+                        LoadInjuryConfig(entry.path().string());
+                    }
+                }
+
+                logs::info("Finished loading all injury configs.");
+            }
+        }
+    }
 }
