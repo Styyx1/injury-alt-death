@@ -20,7 +20,7 @@ namespace Settings
         static REX::INI::Str stress_increase_message{"Stress", "sStressMessage", (std::string) "You are getting stressed!"};
         static REX::INI::Str stress_decrease_message{"Stress", "sStressDecreaseMessage", (std::string) "You are less stressed!"};
 
-        // hidden
+        // hidden inn settings
         static REX::INI::Bool bEnableInnPrice{"Settings", "bEnableInnPrice", false};
         static REX::INI::F32 fInnPriceMultiplier{"Settings", "fInnPriceMultiplier", 20.0f}; // percentage increase for all inn prices
 
@@ -58,18 +58,6 @@ namespace Settings
     namespace Constants
     {
         constexpr const char *esp_name = "StagesOfSuffering.esp";
-        const int injury_chest_tier0 = 0x817;
-        const int injury_head_tier0 = 0x81c;
-        const int injury_organs_tier0 = 0x820;
-        const int injury_legs_tier0 = 0x81E;
-        const int injury_chest_tier1 = 0x822;
-        const int injury_head_tier1 = 0x823;
-        const int injury_organs_tier1 = 0x825;
-        const int injury_legs_tier1 = 0x824;
-        const int injury_chest_tier2 = 0x82a;
-        const int injury_head_tier2 = 0x82b;
-        const int injury_organs_tier2 = 0x82d;
-        const int injury_legs_tier2 = 0x82c;
         // resurrection spells
         const int ethereal_spell_formid = 0x801;
         const int death_heal_formid = 0x803;
@@ -107,19 +95,6 @@ namespace Settings
         // Active injuries (tracks applied injuries)
         static inline std::vector<RE::SpellItem *> active_injuries;
 
-        // injury spells
-        static inline RE::SpellItem *injury_chest_tier0{nullptr};
-        static inline RE::SpellItem *injury_head_tier0{nullptr};
-        static inline RE::SpellItem *injury_organs_tier0{nullptr};
-        static inline RE::SpellItem *injury_legs_tier0{nullptr};
-        static inline RE::SpellItem *injury_chest_tier1{nullptr};
-        static inline RE::SpellItem *injury_head_tier1{nullptr};
-        static inline RE::SpellItem *injury_organs_tier1{nullptr};
-        static inline RE::SpellItem *injury_legs_tier1{nullptr};
-        static inline RE::SpellItem *injury_chest_tier2{nullptr};
-        static inline RE::SpellItem *injury_head_tier2{nullptr};
-        static inline RE::SpellItem *injury_organs_tier2{nullptr};
-        static inline RE::SpellItem *injury_legs_tier2{nullptr};
         // resurrection spells
         static inline RE::SpellItem *ethereal_spell{nullptr}; // ethereal spell for resurrection
         static inline RE::SpellItem *death_heal{nullptr};     // heal for resurrection and surrounding npcs
@@ -157,71 +132,10 @@ namespace Settings
             }
         }
 
-        static void LogSpells()
-        {
-            if (Settings::Values::bEnableDebugLog.GetValue())
-            {
-                for (auto &spell : minor_injuries)
-                {
-                    if (spell)
-                        logs::info("Minor Injury Spell: {}", EDID::GetEditorID(spell));
-                }
-                for (auto &spell : medium_injuries)
-                {
-                    if (spell)
-                        logs::info("Medium Injury Spell: {}", EDID::GetEditorID(spell));
-                }
-                for (auto &spell : major_injuries)
-                {
-                    if (spell)
-                        logs::info("Major Injury Spell: {}", EDID::GetEditorID(spell));
-                }
-            }
-        }
-
-        static void AddSpellsToInjuryList(RE::SpellItem *spell, std::vector<RE::SpellItem *> &injury_list)
-        {
-            if (spell)
-            {
-                injury_list.push_back(spell);
-            }
-        }
-
-        static void PopulateInjuryLists()
-        {
-            AddSpellsToInjuryList(injury_chest_tier0, minor_injuries);
-            AddSpellsToInjuryList(injury_head_tier0, minor_injuries);
-            AddSpellsToInjuryList(injury_organs_tier0, minor_injuries);
-            AddSpellsToInjuryList(injury_legs_tier0, minor_injuries);
-
-            AddSpellsToInjuryList(injury_chest_tier1, medium_injuries);
-            AddSpellsToInjuryList(injury_head_tier1, medium_injuries);
-            AddSpellsToInjuryList(injury_organs_tier1, medium_injuries);
-            AddSpellsToInjuryList(injury_legs_tier1, medium_injuries);
-
-            AddSpellsToInjuryList(injury_chest_tier2, major_injuries);
-            AddSpellsToInjuryList(injury_head_tier2, major_injuries);
-            AddSpellsToInjuryList(injury_organs_tier2, major_injuries);
-            AddSpellsToInjuryList(injury_legs_tier2, major_injuries);
-        }
-
         static void LoadForms()
         {
             logs::info("*****************FORMS*****************");
             auto dh = RE::TESDataHandler::GetSingleton();
-
-            injury_chest_tier0 = dh->LookupForm<RE::SpellItem>(Constants::injury_chest_tier0, Constants::esp_name);
-            injury_head_tier0 = dh->LookupForm<RE::SpellItem>(Constants::injury_head_tier0, Constants::esp_name);
-            injury_organs_tier0 = dh->LookupForm<RE::SpellItem>(Constants::injury_organs_tier0, Constants::esp_name);
-            injury_legs_tier0 = dh->LookupForm<RE::SpellItem>(Constants::injury_legs_tier0, Constants::esp_name);
-            injury_chest_tier1 = dh->LookupForm<RE::SpellItem>(Constants::injury_chest_tier1, Constants::esp_name);
-            injury_head_tier1 = dh->LookupForm<RE::SpellItem>(Constants::injury_head_tier1, Constants::esp_name);
-            injury_organs_tier1 = dh->LookupForm<RE::SpellItem>(Constants::injury_organs_tier1, Constants::esp_name);
-            injury_legs_tier1 = dh->LookupForm<RE::SpellItem>(Constants::injury_legs_tier1, Constants::esp_name);
-            injury_chest_tier2 = dh->LookupForm<RE::SpellItem>(Constants::injury_chest_tier2, Constants::esp_name);
-            injury_head_tier2 = dh->LookupForm<RE::SpellItem>(Constants::injury_head_tier2, Constants::esp_name);
-            injury_organs_tier2 = dh->LookupForm<RE::SpellItem>(Constants::injury_organs_tier2, Constants::esp_name);
-            injury_legs_tier2 = dh->LookupForm<RE::SpellItem>(Constants::injury_legs_tier2, Constants::esp_name);
 
             // resurrection spells
             death_heal = dh->LookupForm<RE::SpellItem>(Constants::death_heal_formid, Constants::esp_name);
@@ -270,8 +184,6 @@ namespace Settings
                 }
             }
 
-            PopulateInjuryLists();
-            LogSpells();
             StoreInnPrices();
             logs::info("inn_prices_single_night: {}", inn_prices_map[inn_price_single_night]);
         }
@@ -281,16 +193,12 @@ namespace Settings
     {
         namespace JSONValues
         {
-
             static inline RE::TESForm *GetFormFromString(const std::string &spellName)
             {
                 std::istringstream ss{spellName};
                 std::string plugin, id;
                 std::getline(ss, id, '|');
                 std::getline(ss, plugin);
-
-                // std::getline(ss, plugin, '|');
-                // std::getline(ss, id);
 
                 RE::FormID rawFormID;
                 std::istringstream(id) >> std::hex >> rawFormID;
@@ -314,43 +222,65 @@ namespace Settings
                 // Minor injuries
                 for (const auto &str : j["minor_injuries"])
                 {
-                    logs::info("Loading minor injury spell: {}", str.get<std::string>());
+                    if (Values::bEnableDebugLog.GetValue())
+                    {
+                        logs::info("Loading minor injury spell: {}", str.get<std::string>());
+                    }
                     RE::TESForm *form = GetFormFromString(str.get<std::string>());
                     if (form && form->GetFormType() == RE::FormType::Spell)
                     {
                         Forms::minor_injuries.push_back(form->As<RE::SpellItem>());
-                        logs::info("Loaded minor injury spell: {}", EDID::GetEditorID(form));
+                        if (Values::bEnableDebugLog.GetValue())
+                        {
+                            logs::info("Loaded minor injury spell: {}", EDID::GetEditorID(form));
+                        }
                     }
                 }
 
                 // Medium injuries
                 for (const auto &str : j["medium_injuries"])
                 {
-                    logs::info("Loading medium injury spell: {}", str.get<std::string>());
+                    if (Values::bEnableDebugLog.GetValue())
+                    {
+                        logs::info("Loading medium injury spell: {}", str.get<std::string>());
+                    }
                     RE::TESForm *form = GetFormFromString(str.get<std::string>());
                     if (form && form->GetFormType() == RE::FormType::Spell)
                     {
+
                         Forms::medium_injuries.push_back(form->As<RE::SpellItem>());
-                        logs::info("Loaded medium injury spell: {}", EDID::GetEditorID(form));
+                        if (Values::bEnableDebugLog.GetValue())
+                        {
+                            logs::info("Loaded medium injury spell: {}", EDID::GetEditorID(form));
+                        }
                     }
                 }
 
                 // Major injuries
                 for (const auto &str : j["major_injuries"])
                 {
-                    logs::info("Loading major injury spell: {}", str.get<std::string>());
+                    if (Values::bEnableDebugLog.GetValue())
+                    {
+                        logs::info("Loading major injury spell: {}", str.get<std::string>());
+                    }
                     RE::TESForm *form = GetFormFromString(str.get<std::string>());
                     if (form && form->GetFormType() == RE::FormType::Spell)
                     {
                         Forms::major_injuries.push_back(form->As<RE::SpellItem>());
-                        logs::info("Loaded major injury spell: {}", EDID::GetEditorID(form));
+                        if (Values::bEnableDebugLog.GetValue())
+                        {
+                            logs::info("Loaded major injury spell: {}", EDID::GetEditorID(form));
+                        }
                     }
                 }
 
                 // Spell upgrades
                 for (auto &[fromStr, toStr] : j["spell_upgrades"].items())
                 {
-                    logs::info("Loading spell upgrade: {} -> {}", fromStr.c_str(), toStr.get<std::string>());
+                    if (Values::bEnableDebugLog.GetValue())
+                    {
+                        logs::info("Loading spell upgrade: {} -> {}", fromStr.c_str(), toStr.get<std::string>());
+                    }
                     RE::TESForm *lowerForm = GetFormFromString(fromStr);
                     RE::TESForm *higherForm = GetFormFromString(toStr.get<std::string>());
 
@@ -359,14 +289,20 @@ namespace Settings
                         higherForm->GetFormType() == RE::FormType::Spell)
                     {
                         Forms::spell_upgrades[lowerForm->As<RE::SpellItem>()] = higherForm->As<RE::SpellItem>();
-                        logs::info("Loaded spell upgrade: {} -> {}", EDID::GetEditorID(lowerForm), EDID::GetEditorID(higherForm));
+                        if (Values::bEnableDebugLog.GetValue())
+                        {
+                            logs::info("Loaded spell upgrade: {} -> {}", EDID::GetEditorID(lowerForm), EDID::GetEditorID(higherForm));
+                        }
                     }
                 }
 
                 // Spell downgrades
                 for (auto &[fromStr, toStr] : j["spell_downgrades"].items())
                 {
-                    logs::info("Loading spell downgrade: {} -> {}", fromStr.c_str(), toStr.get<std::string>());
+                    if (Values::bEnableDebugLog.GetValue())
+                    {
+                        logs::info("Loading spell downgrade: {} -> {}", fromStr.c_str(), toStr.get<std::string>());
+                    }
                     RE::TESForm *higherForm = GetFormFromString(fromStr);
                     RE::TESForm *lowerForm = GetFormFromString(toStr.get<std::string>());
 
@@ -375,7 +311,10 @@ namespace Settings
                         lowerForm->GetFormType() == RE::FormType::Spell)
                     {
                         Forms::spell_downgrades[higherForm->As<RE::SpellItem>()] = lowerForm->As<RE::SpellItem>();
-                        logs::info("Loaded spell downgrade: {} -> {}", EDID::GetEditorID(higherForm), EDID::GetEditorID(lowerForm));
+                        if (Values::bEnableDebugLog.GetValue())
+                        {
+                            logs::info("Loaded spell downgrade: {} -> {}", EDID::GetEditorID(higherForm), EDID::GetEditorID(lowerForm));
+                        }
                     }
                 }
 
@@ -398,7 +337,10 @@ namespace Settings
                 {
                     if (entry.is_regular_file() && entry.path().extension() == ".json")
                     {
-                        logs::info("Loading injury config: {}", entry.path().string());
+                        if (Values::bEnableDebugLog.GetValue())
+                        {
+                            logs::info("Loading injury config: {}", entry.path().string());
+                        }
                         LoadInjuryConfig(entry.path().string());
                     }
                 }

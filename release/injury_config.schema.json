@@ -58,9 +58,7 @@
   "required": [
     "minor_injuries",
     "medium_injuries",
-    "major_injuries",
-    "spell_downgrades",
-    "spell_upgrades"
+    "major_injuries"
   ],
   "additionalProperties": false
 }

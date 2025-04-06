@@ -1,0 +1,47 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Styyx1/injury-alt-death/refs/heads/main/release/injury_config.schema.json",
+    "minor_injuries": [
+        "0x817|StagesOfSuffering.esp",
+        "0x81C|StagesOfSuffering.esp",
+        "0x820|StagesOfSuffering.esp",
+        "0x81E|StagesOfSuffering.esp"
+    ],
+    "medium_injuries": [
+        "0x822|StagesOfSuffering.esp",
+        "0x823|StagesOfSuffering.esp",
+        "0x825|StagesOfSuffering.esp",
+        "0x824|StagesOfSuffering.esp"
+    ],
+    "major_injuries": [
+        "0x82A|StagesOfSuffering.esp",
+        "0x82B|StagesOfSuffering.esp",
+        "0x82D|StagesOfSuffering.esp",
+        "0x82C|StagesOfSuffering.esp"
+    ],
+    "spell_upgrades": {
+        "0x817|StagesOfSuffering.esp": "0x822|StagesOfSuffering.esp",
+        "0x822|StagesOfSuffering.esp": "0x82A|StagesOfSuffering.esp",
+
+        "0x81C|StagesOfSuffering.esp": "0x823|StagesOfSuffering.esp",
+        "0x823|StagesOfSuffering.esp": "0x82B|StagesOfSuffering.esp",
+
+        "0x820|StagesOfSuffering.esp": "0x825|StagesOfSuffering.esp",
+        "0x825|StagesOfSuffering.esp": "0x82D|StagesOfSuffering.esp",
+
+        "0x81E|StagesOfSuffering.esp": "0x824|StagesOfSuffering.esp",
+        "0x824|StagesOfSuffering.esp": "0x82C|StagesOfSuffering.esp"
+    },
+    "spell_downgrades": {
+        "0x82A|StagesOfSuffering.esp": "0x822|StagesOfSuffering.esp",
+        "0x822|StagesOfSuffering.esp": "0x817|StagesOfSuffering.esp",
+
+        "0x82B|StagesOfSuffering.esp": "0x823|StagesOfSuffering.esp",
+        "0x823|StagesOfSuffering.esp": "0x81C|StagesOfSuffering.esp",
+
+        "0x82D|StagesOfSuffering.esp": "0x825|StagesOfSuffering.esp",
+        "0x825|StagesOfSuffering.esp": "0x820|StagesOfSuffering.esp",
+        
+        "0x82C|StagesOfSuffering.esp": "0x824|StagesOfSuffering.esp",
+        "0x824|StagesOfSuffering.esp": "0x81E|StagesOfSuffering.esp"
+    }
+}
