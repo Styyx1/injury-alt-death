@@ -70,7 +70,7 @@ SKSEPluginLoad(const SKSE::LoadInterface *a_skse)
 {
 	SKSE::Init(a_skse);
 	logs::init();
-	SKSE::AllocTrampoline(14 * 1);
+	SKSE::AllocTrampoline(14 * 2);
 	Settings::Values::Update();
 	Cache::CacheAddLibAddresses();
 	SKSE::GetMessagingInterface()->RegisterListener(InitListener);
