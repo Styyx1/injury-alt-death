@@ -19,21 +19,4 @@ namespace Hooks
         static inline REL::Relocation<decltype(&PlayerUsePotion)> _PlayerUsePotion;
     };
 
-    struct SetAv
-    {
-        static void Install();
-
-    private:
-        static void SetAV(RE::ActorValueOwner *a_this, RE::ActorValue av, float value);
-        static inline REL::Relocation<decltype(&SetAV)> _SetAV;
-    };
-
-    struct ModAVHook
-    {
-        static void Install();
-
-    private:
-        static void ModAV(RE::ActorValueOwner *a_this, RE::ActorValue actorValue, float value);
-        static inline REL::Relocation<decltype(&ModAV)> _ModAV;
-    };
 }

@@ -47,7 +47,7 @@ namespace Utility
                     if (!result.empty())
                     {
                         return result;
-                    }
+                    };
                 }
                 return result;
             }
@@ -263,16 +263,32 @@ namespace Utility
         // Function to get a random spell from a given tier
         static RE::SpellItem *GetRandomSpell(const std::vector<RE::SpellItem *> &spells)
         {
+            auto player = Cache::GetPlayerSingleton();
+
             if (spells.empty())
             {
                 logs::error("No spells available in the vector.");
                 return nullptr;
             }
 
+            std::vector<RE::SpellItem *> filtered_spells;
+            for (auto *spell : spells)
+            {
+                if (spell && !player->HasSpell(spell))
+                {
+                    filtered_spells.push_back(spell);
+                }
+            }
+
+            if (filtered_spells.empty())
+            {
+                logs::error("No spells available to apply.");
+                return nullptr;
+            }
             static std::random_device rd;
             static std::mt19937 gen(rd());
-            std::uniform_int_distribution<size_t> dist(0, spells.size() - 1);
-            RE::SpellItem *selected_spell = spells[dist(gen)];
+            std::uniform_int_distribution<size_t> dist(0, filtered_spells.size() - 1);
+            RE::SpellItem *selected_spell = filtered_spells[dist(gen)];
 
             if (!selected_spell)
             {
@@ -299,17 +315,27 @@ namespace Utility
                     Spells::ApplySpell(a_actor, a_actor, upgraded_spell);
                     logs::info("Upgraded injury: {} to {}", EDID::GetEditorID(spell), EDID::GetEditorID(upgraded_spell));
                     spell = upgraded_spell; // Update injury list
-                    
                 }
             }
             // Apply a new minor injury
             RE::SpellItem *new_injury = GetRandomSpell(Settings::Forms::minor_injuries);
-            if (new_injury)
+            if (new_injury && !Spells::HasSpell(a_actor, new_injury))
             {
-                Settings::Forms::active_injuries.push_back(new_injury);
-                Spells::ApplySpell(a_actor, a_actor, new_injury);
+                // Check if the actor already has the spell
+                if (Spells::HasSpell(a_actor, new_injury))
+                {
+                    logs::info("Actor already has the spell: {}", EDID::GetEditorID(new_injury));
+                    return;
+                }
 
-                logs::info("Applied new minor injury: {}", EDID::GetEditorID(new_injury));
+                // Apply the new injury
+                a_actor->AddSpell(new_injury);
+                {
+                    Settings::Forms::active_injuries.push_back(new_injury);
+                    Spells::ApplySpell(a_actor, a_actor, new_injury);
+
+                    logs::info("Applied new minor injury: {}", EDID::GetEditorID(new_injury));
+                }
             }
         }
     };

@@ -5,6 +5,7 @@
 #include "utility.h"
 #include "sleephandler.h"
 #include "hooks.h"
+#include "magiceffectevent.h"
 
 class ResurrectionManager : public ResurrectionAPI
 {
@@ -13,7 +14,7 @@ class ResurrectionManager : public ResurrectionAPI
 		RE::PlayerCharacter *player = RE::PlayerCharacter::GetSingleton();
 		if (a == player)
 		{
-			return true;
+			return true;			
 		}
 		else
 		{
@@ -58,6 +59,7 @@ void InitListener(SKSE::MessagingInterface::Message *a_msg)
 		addSubscriber();
 		SleepEvents::InstallEvents();
 		Hooks::InstallHooks();
+		Effect::InstallEvents();
 		Settings::JSONSettings::JSONValues::LoadAllInjuryConfigs("Data/SKSE/Plugins/SufferingInjuries/");
 	}
 	if (a_msg->type == SKSE::MessagingInterface::kPostLoadGame)
